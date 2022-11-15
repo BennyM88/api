@@ -2,13 +2,14 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Union
 from PIL import Image
-import PIL
-
+import PIL.ImageOps
 from fastapi import Depends, FastAPI, File, HTTPException, Response, UploadFile, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+import uvicorn
+from os import environ
 
 SECRET_KEY = "480d3fcbb6cbf65a4fe5e4243e7d6c9ab9890da1672b1df6378048e96214c179"
 ALGORITHM = "HS256"
@@ -88,7 +89,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 def image_to_bytes(image):
     img_byte_arr = BytesIO()
-    image.save(img_byte_arr, format='JPEG')
+    image.save(img_byte_arr, format="JPEG")
     return img_byte_arr.getvalue()
 
 @app.post("/token", response_model=Token)
@@ -110,21 +111,25 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 async def get_time(current_user: User = Depends(get_current_user)):
     print(current_user)
     now = datetime.now()
-    return "Current time: " + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second)
+    current_time = now.strftime("%H:%M:%S")
+    return {"Current time: ": current_time}
 
 @app.get("/prime/{number}")
 async def isPrime(number: int):
     if number & 1 == 0:
-        return {number: 'is not a prime number'}
+        return {number: "is not a prime number"}
     d = 3
     while d * d <= number:
         if number % d == 0:
-            return {number: 'is not a prime number'}
+            return {number: "is not a prime number"}
         d = d + 2
-    return {number: 'is a prime number'}
+    return {number: "is a prime number"}
 
 @app.post("/picture/invert/")
 async def invert_image(file: UploadFile = File(...)):
     image = PIL.ImageOps.invert(Image.open(file.filename))
     image = image_to_bytes(image)
     return Response(content=image, media_type="image/jpeg")
+
+if __name__ == '__main__':
+    uvicorn.run("main:app", host='0.0.0.0', port=environ.get("PORT", 5000))
