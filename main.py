@@ -8,8 +8,6 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-import uvicorn
-from os import environ
 
 SECRET_KEY = "480d3fcbb6cbf65a4fe5e4243e7d6c9ab9890da1672b1df6378048e96214c179"
 ALGORITHM = "HS256"
@@ -21,9 +19,6 @@ fake_user = {
         "hashed_password": "$2b$12$ZEU5CY6WUE4AKBVbn3L0j.QTWBJQic0bC8/9n/kOEII3rpSRtcdyW", #admin
     }
 }
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
 
 class Token(BaseModel):
     access_token: str
@@ -95,6 +90,10 @@ def image_to_bytes(image):
     image.save(img_byte_arr, format="JPEG")
     return img_byte_arr.getvalue()
 
+@app.get("/")
+async def home():
+    return {"Hello"}
+
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(fake_user, form_data.username, form_data.password)
@@ -133,6 +132,3 @@ async def invert_image(file: UploadFile = File(...)):
     image = PIL.ImageOps.invert(Image.open(file.filename))
     image = image_to_bytes(image)
     return Response(content=image, media_type="image/jpeg")
-
-# if __name__ == '__main__':
-#     uvicorn.run("main:app", host='0.0.0.0', port=environ.get("PORT", 5000))
