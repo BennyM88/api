@@ -18,9 +18,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 fake_user = {
     "bennym8": {
         "username": "bennym8",
-        "hashed_password": "$2b$12$xsKuVK.DbxsA6H1JrNMzVuB79diO/pdSHjolhh65FlUTu29tbaCk2",
+        "hashed_password": "$2b$12$ZEU5CY6WUE4AKBVbn3L0j.QTWBJQic0bC8/9n/kOEII3rpSRtcdyW", #admin
     }
 }
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 class Token(BaseModel):
     access_token: str
@@ -131,5 +134,5 @@ async def invert_image(file: UploadFile = File(...)):
     image = image_to_bytes(image)
     return Response(content=image, media_type="image/jpeg")
 
-if __name__ == '__main__':
-    uvicorn.run("main:app", host='0.0.0.0', port=environ.get("PORT", 5000))
+# if __name__ == '__main__':
+#     uvicorn.run("main:app", host='0.0.0.0', port=environ.get("PORT", 5000))
